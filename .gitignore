@@ -16,10 +16,13 @@ override.tf.json
 
 # Secrets - NEVER commit these!
 terraform.tfvars
+terraform.tfvars.backup*
 *.tfvars
 !terraform.tfvars.example
 *.auto.tfvars
 !*.auto.tfvars.example
+
+SECURITY.md
 
 # IDE
 .idea/

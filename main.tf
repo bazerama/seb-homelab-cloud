@@ -1,37 +1,4 @@
 # ============================================================================
-# ORACLE AMPERE ALWAYS-FREE TIER CONFIGURATION
-# ============================================================================
-# Free Tier Limits (per tenancy):
-# - Shape: VM.Standard.A1.Flex (Ampere A1 - ARM64)
-# - Max OCPUs: 4 total across ALL ARM instances
-# - Max Memory: 24 GB total across ALL ARM instances
-# - Max Instances: Up to 4 VM instances (we use 3)
-# - Boot Volume: 200 GB total (we use 150GB = 50GB × 3)
-# - Public IPs: 2 reserved (we use 3 ephemeral)
-# ============================================================================
-
-terraform {
-  required_version = ">= 1.6.0"
-  required_providers {
-    oci = {
-      source  = "oracle/oci"
-      version = "~> 5.0"
-    }
-  }
-}
-
-# This configuration works with both Terraform and OpenTofu
-# OpenTofu is recommended as it's fully open-source
-
-provider "oci" {
-  tenancy_ocid     = var.tenancy_ocid
-  user_ocid        = var.user_ocid
-  fingerprint      = var.fingerprint
-  private_key_path = var.private_key_path
-  region           = var.region
-}
-
-# ============================================================================
 # Local Variables & Validation
 # ============================================================================
 
@@ -254,8 +221,51 @@ resource "oci_core_subnet" "k3s_subnet" {
 # Compute Instances (K3s Nodes)
 # ============================================================================
 
-resource "oci_core_instance" "k3s_nodes" {
-  for_each = { for idx, node in local.nodes : node.name => node }
+# Control Plane Node (created first)
+resource "oci_core_instance" "k3s_control_plane" {
+  availability_domain = var.availability_domain
+  compartment_id      = var.compartment_ocid
+  display_name        = local.nodes[0].name
+  shape               = "VM.Standard.A1.Flex" # Always-Free ARM shape
+
+  shape_config {
+    ocpus         = local.nodes[0].ocpus
+    memory_in_gbs = local.nodes[0].memory_gb
+  }
+
+  source_details {
+    source_type             = "image"
+    source_id               = var.arm_image_ocid
+    boot_volume_size_in_gbs = local.nodes[0].storage_gb
+  }
+
+  create_vnic_details {
+    assign_public_ip = true
+    subnet_id        = oci_core_subnet.k3s_subnet.id
+    display_name     = "${local.nodes[0].name}-vnic"
+  }
+
+  metadata = {
+    ssh_authorized_keys = file(var.ssh_public_key_path)
+    user_data = base64encode(templatefile("${path.module}/cloud-init.tpl", {
+      node_name        = local.nodes[0].name
+      node_role        = local.nodes[0].role
+      is_control_plane = true
+      control_plane_ip = "" # Not needed for control plane
+      k3s_token        = local.k3s_token
+    }))
+  }
+
+  freeform_tags = merge(local.common_tags, {
+    role = local.nodes[0].role
+  })
+
+  depends_on = [null_resource.validate_free_tier]
+}
+
+# Worker Nodes (created after control plane)
+resource "oci_core_instance" "k3s_workers" {
+  for_each = { for idx, node in slice(local.nodes, 1, length(local.nodes)) : node.name => node }
 
   availability_domain = var.availability_domain
   compartment_id      = var.compartment_ocid
@@ -284,8 +294,8 @@ resource "oci_core_instance" "k3s_nodes" {
     user_data = base64encode(templatefile("${path.module}/cloud-init.tpl", {
       node_name        = each.value.name
       node_role        = each.value.role
-      is_control_plane = each.value.role == "control-plane"
-      control_plane_ip = each.value.role == "control-plane" ? "" : oci_core_instance.k3s_nodes["k3s-control-1"].public_ip
+      is_control_plane = false
+      control_plane_ip = oci_core_instance.k3s_control_plane.public_ip
       k3s_token        = local.k3s_token
     }))
   }
@@ -294,7 +304,10 @@ resource "oci_core_instance" "k3s_nodes" {
     role = each.value.role
   })
 
-  depends_on = [null_resource.validate_free_tier]
+  depends_on = [
+    null_resource.validate_free_tier,
+    oci_core_instance.k3s_control_plane
+  ]
 }
 
 # ============================================================================
@@ -314,42 +327,49 @@ output "validation_summary" {
 
 output "k3s_control_plane_public_ip" {
   description = "Public IP of K3s control plane"
-  value       = oci_core_instance.k3s_nodes["k3s-control-1"].public_ip
+  value       = oci_core_instance.k3s_control_plane.public_ip
 }
 
 output "k3s_control_plane_private_ip" {
   description = "Private IP of K3s control plane"
-  value       = oci_core_instance.k3s_nodes["k3s-control-1"].private_ip
+  value       = oci_core_instance.k3s_control_plane.private_ip
 }
 
 output "k3s_worker_public_ips" {
   description = "Public IPs of K3s workers"
   value = {
-    for name, instance in oci_core_instance.k3s_nodes :
+    for name, instance in oci_core_instance.k3s_workers :
     name => instance.public_ip
-    if instance.freeform_tags["role"] == "worker"
   }
 }
 
 output "k3s_worker_private_ips" {
   description = "Private IPs of K3s workers"
   value = {
-    for name, instance in oci_core_instance.k3s_nodes :
+    for name, instance in oci_core_instance.k3s_workers :
     name => instance.private_ip
-    if instance.freeform_tags["role"] == "worker"
   }
 }
 
 output "all_nodes" {
   description = "All node details"
-  value = {
-    for name, instance in oci_core_instance.k3s_nodes :
-    name => {
-      public_ip  = instance.public_ip
-      private_ip = instance.private_ip
-      role       = instance.freeform_tags["role"]
+  value = merge(
+    {
+      "${oci_core_instance.k3s_control_plane.display_name}" = {
+        public_ip  = oci_core_instance.k3s_control_plane.public_ip
+        private_ip = oci_core_instance.k3s_control_plane.private_ip
+        role       = "control-plane"
+      }
+    },
+    {
+      for name, instance in oci_core_instance.k3s_workers :
+      name => {
+        public_ip  = instance.public_ip
+        private_ip = instance.private_ip
+        role       = "worker"
+      }
     }
-  }
+  )
 }
 
 output "k3s_token" {
@@ -360,14 +380,19 @@ output "k3s_token" {
 
 output "ssh_commands" {
   description = "SSH commands to access nodes"
-  value = {
-    for name, instance in oci_core_instance.k3s_nodes :
-    name => "ssh opc@${instance.public_ip}"
-  }
+  value = merge(
+    {
+      "${oci_core_instance.k3s_control_plane.display_name}" = "ssh opc@${oci_core_instance.k3s_control_plane.public_ip}"
+    },
+    {
+      for name, instance in oci_core_instance.k3s_workers :
+      name => "ssh opc@${instance.public_ip}"
+    }
+  )
 }
 
 output "kubeconfig_command" {
   description = "Command to fetch kubeconfig from control plane"
-  value       = "ssh opc@${oci_core_instance.k3s_nodes["k3s-control-1"].public_ip} sudo cat /etc/rancher/k3s/k3s.yaml"
+  value       = "ssh opc@${oci_core_instance.k3s_control_plane.public_ip} sudo cat /etc/rancher/k3s/k3s.yaml"
 }
 
