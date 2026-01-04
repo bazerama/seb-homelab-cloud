@@ -79,4 +79,3 @@ echo "   arm_image_ocid = \"$IMAGE_OCID\""
 echo ""
 echo "Or export as environment variable:"
 echo "   export TF_VAR_arm_image_ocid=\"$IMAGE_OCID\""
-

@@ -1,3 +1,6 @@
+# Pre-commit
+.pre-commit-config.yaml.bak
+
 # OpenTofu / Terraform
 *.tfstate
 *.tfstate.*
@@ -21,6 +24,8 @@ terraform.tfvars.backup*
 !terraform.tfvars.example
 *.auto.tfvars
 !*.auto.tfvars.example
+tfplan
+plan_output.txt
 
 SECURITY.md
 
@@ -45,4 +50,3 @@ secrets/
 # Logs
 *.log
 npm-debug.log*
-

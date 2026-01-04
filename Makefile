@@ -71,4 +71,3 @@ status: ## Show deployed resources
 
 show: ## Show current state
 	$(TOFU) show
-

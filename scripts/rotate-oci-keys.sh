@@ -88,17 +88,17 @@ TFVARS_FILE="$(dirname "$0")/../terraform.tfvars"
 if [ -f "$TFVARS_FILE" ]; then
     echo "Found terraform.tfvars at: $TFVARS_FILE"
     echo ""
-    
+
     # Backup tfvars
     cp "$TFVARS_FILE" "$TFVARS_FILE.backup_$(date +%Y%m%d_%H%M%S)"
-    
+
     # Try to update fingerprint
     if grep -q "^fingerprint" "$TFVARS_FILE"; then
         OLD_FINGERPRINT=$(grep "^fingerprint" "$TFVARS_FILE" | cut -d= -f2 | tr -d ' "')
         echo "Old fingerprint: $OLD_FINGERPRINT"
         echo "New fingerprint: $NEW_FINGERPRINT"
         echo ""
-        
+
         # Update in-place
         if [[ "$OSTYPE" == "darwin"* ]]; then
             # macOS
@@ -107,7 +107,7 @@ if [ -f "$TFVARS_FILE" ]; then
             # Linux
             sed -i "s/fingerprint.*=.*/fingerprint        = \"$NEW_FINGERPRINT\"/" "$TFVARS_FILE"
         fi
-        
+
         echo -e "${GREEN}✅ Updated terraform.tfvars with new fingerprint${NC}"
     else
         echo -e "${YELLOW}⚠️  Could not find fingerprint line in terraform.tfvars${NC}"
@@ -133,19 +133,19 @@ if [[ $TEST_REPLY =~ ^[Yy]es$ ]]; then
     mv "$OLD_PUB" "$OCI_DIR/oci_api_key_public_old.pem" 2>/dev/null || true
     mv "$OCI_DIR/oci_api_key_new_test.pem" "$OLD_KEY"
     mv "$OCI_DIR/oci_api_key_public_new_test.pem" "$OLD_PUB"
-    
+
     cd "$(dirname "$0")/.."
-    
+
     echo "Testing with 'tofu plan'..."
     echo ""
-    
+
     # Run tofu plan and capture exit code
     if tofu plan -detailed-exitcode >/dev/null 2>&1; then
         PLAN_EXIT=$?
     else
         PLAN_EXIT=$?
     fi
-    
+
     # Exit codes: 0 = no changes, 1 = error, 2 = changes pending
     # Both 0 and 2 are success (2 just means there are changes to apply)
     if [ $PLAN_EXIT -eq 0 ] || [ $PLAN_EXIT -eq 2 ]; then
@@ -164,13 +164,13 @@ if [[ $TEST_REPLY =~ ^[Yy]es$ ]]; then
     else
         echo ""
         echo -e "${RED}❌ Test failed! Rolling back...${NC}"
-        
+
         # Rollback
         mv "$OLD_KEY" "$NEW_KEY"
         mv "$OLD_PUB" "$NEW_PUB"
         mv "$OCI_DIR/oci_api_key_old.pem" "$OLD_KEY" 2>/dev/null || true
         mv "$OCI_DIR/oci_api_key_public_old.pem" "$OLD_PUB" 2>/dev/null || true
-        
+
         echo "Restored old keys. Please check:"
         echo "1. Did you upload the public key correctly in OCI?"
         echo "2. Did you wait a few seconds for OCI to process it?"
@@ -198,4 +198,3 @@ echo "  ✅ Old keys backed up to: $BACKUP_DIR"
 echo ""
 echo "⚠️  Remember to DELETE the old API key from OCI Console!"
 echo ""
-

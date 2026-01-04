@@ -185,4 +185,3 @@ echo "  3. Run: make install && make get"
 echo "  4. Run: make plan"
 echo "  5. Run: make deploy"
 echo ""
-

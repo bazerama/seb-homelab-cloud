@@ -248,4 +248,3 @@ Includes:
 ---
 
 Enjoy your free Kubernetes cluster! 🚀
-

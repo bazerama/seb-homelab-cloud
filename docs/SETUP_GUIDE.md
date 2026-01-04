@@ -323,4 +323,3 @@ Once your cluster is running:
 4. **Deploy applications** from your homelab setup
 
 Enjoy your free cloud K8s cluster! 🚀
-

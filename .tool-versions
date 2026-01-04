@@ -2,4 +2,3 @@
 # This works with both OpenTofu and Terraform
 opentofu 1.6.0
 # terraform 1.6.0  # Uncomment if you prefer Terraform
-

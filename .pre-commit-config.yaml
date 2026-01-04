@@ -1,0 +1,97 @@
+# Pre-commit hooks for seb-homelab-cloud
+# See https://pre-commit.com for more information
+
+repos:
+  # OpenTofu/Terraform formatting and validation
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.94.1
+    hooks:
+      - id: terraform_fmt
+        name: OpenTofu Format
+        description: Rewrites all Terraform/OpenTofu configuration files to canonical format
+        args:
+          - --args=-recursive
+          - --args=-write=true
+
+      - id: terraform_validate
+        name: OpenTofu Validate
+        description: Validates all Terraform/OpenTofu configuration files
+        args:
+          - --hook-config=--retry-once-with-cleanup=true
+
+      - id: terraform_tflint
+        name: TFLint
+        description: Lints Terraform/OpenTofu files
+        args:
+          - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl
+        files: \.tf$
+
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim Trailing Whitespace
+        description: Trims trailing whitespace
+        exclude: '\.md$'
+
+      - id: end-of-file-fixer
+        name: Fix End of Files
+        description: Makes sure files end in a newline and only a newline
+
+      - id: check-yaml
+        name: Check YAML
+        description: Attempts to load all yaml files to verify syntax
+        exclude: '\.github/workflows/.*\.yml$'  # GitHub Actions uses some special syntax
+
+      - id: check-added-large-files
+        name: Check for Large Files
+        description: Prevents giant files from being committed
+        args: ['--maxkb=500']
+
+      - id: check-merge-conflict
+        name: Check for Merge Conflicts
+        description: Check for files that contain merge conflict strings
+
+      - id: check-executables-have-shebangs
+        name: Check Executables Have Shebangs
+        description: Checks that non-binary executables have a proper shebang
+
+      - id: mixed-line-ending
+        name: Check Line Endings
+        description: Checks for mixed line endings
+        args: ['--fix=lf']
+
+      - id: no-commit-to-branch
+        name: Don't Commit to Main
+        description: Prevents commits to main branch (use PRs)
+        args: ['--branch', 'main', '--branch', 'master']
+
+  # Secret detection
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+        name: Gitleaks (Secret Scanner)
+        description: Detect hardcoded secrets, passwords, API keys
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.42.0
+    hooks:
+      - id: markdownlint
+        name: Markdown Lint
+        description: Checks markdown files for style issues
+        args: ['--fix', '--disable', 'MD013', 'MD033', 'MD041']
+        # MD013: line length (disabled - too strict)
+        # MD033: inline HTML (disabled - needed for collapsible sections)
+        # MD041: first line in file should be h1 (disabled - not always needed)
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        name: ShellCheck
+        description: Lints shell scripts
+        args: ['--severity=warning']

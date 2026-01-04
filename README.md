@@ -196,6 +196,47 @@ kubectl get nodes
 - ⚠️ This uses ALL available ARM resources (no room for more ARM VMs)
 - 💡 Free tier also includes 2× x86 VMs (VM.Standard.E2.1.Micro) but they're too weak to be useful
 
+## 🪝 Pre-commit Hooks
+
+This repository uses pre-commit hooks to ensure code quality!
+
+**Setup (one-time):**
+```bash
+./scripts/setup-pre-commit.sh
+```
+
+**What gets checked:**
+- ✅ OpenTofu formatting (`tofu fmt`)
+- ✅ OpenTofu validation
+- ✅ Secret detection (gitleaks)
+- ✅ Shell script linting (shellcheck)
+- ✅ Markdown linting
+- ✅ YAML validation
+- ✅ No direct commits to main
+
+**Manual run:**
+```bash
+pre-commit run --all-files
+```
+
+## 🤖 GitHub Actions CI/CD
+
+This repository includes automated OpenTofu deployment via GitHub Actions!
+
+**Features:**
+- ✅ Automatic validation on PRs
+- ✅ Plan preview in PR comments
+- ✅ Auto-apply on main branch (with approval)
+- ✅ Manual plan/apply/destroy
+
+**Setup:** See [`.github/workflows/README.md`](.github/workflows/README.md) for configuration instructions.
+
+**Helper Script:**
+```bash
+./scripts/setup-github-secrets.sh
+# Shows all values to add to GitHub Secrets
+```
+
 ## 🔧 Management Commands
 
 ```bash
@@ -290,4 +331,3 @@ sudo journalctl -u k3s -f  # or k3s-agent for workers
 ## 🎉 What's Next?
 
 Check out the main K8s IaC repo: [seb-homelab-k8s-iac](../seb-homelab-k8s-iac)
-

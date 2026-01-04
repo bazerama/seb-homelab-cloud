@@ -377,4 +377,3 @@ If you need to grow beyond 3 nodes:
 - [AWS EKS Pricing](https://aws.amazon.com/eks/pricing/)
 
 **Last Updated:** January 2026
-

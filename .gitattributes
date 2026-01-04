@@ -6,4 +6,3 @@ terraform.tfvars filter=secret
 # Mark sensitive files
 *.pem binary
 *.key binary
-
