@@ -1,0 +1,9 @@
+# Ensure secrets are never committed
+terraform.tfvars filter=secret
+*.tfvars filter=secret
+*.auto.tfvars filter=secret
+
+# Mark sensitive files
+*.pem binary
+*.key binary
+
