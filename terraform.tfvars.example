@@ -1,0 +1,20 @@
+# Copy this file to terraform.tfvars and fill in your values
+# Or set these as environment variables: export TF_VAR_tenancy_ocid="..."
+
+# Get these from OCI Console
+tenancy_ocid       = "ocid1.tenancy.oc1..aaaaaaaa..."
+user_ocid          = "ocid1.user.oc1..aaaaaaaa..."
+fingerprint        = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+private_key_path   = "~/.oci/oci_api_key.pem"
+compartment_ocid   = "ocid1.compartment.oc1..aaaaaaaa..." # Or use tenancy_ocid
+region             = "us-ashburn-1" # or your preferred region
+
+# Get this from: OCI Console -> Compute -> Instances -> Create Instance -> Select AD
+availability_domain = "ynwd:US-ASHBURN-AD-1"
+
+# SSH key for accessing instances
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
+
+# ARM image OCID - see docs/SETUP.md for how to find this
+arm_image_ocid = "ocid1.image.oc1.iad.aaaaaaaa..."
+
