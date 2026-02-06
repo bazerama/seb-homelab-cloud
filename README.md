@@ -44,6 +44,15 @@ This repository contains OpenTofu (Terraform-compatible) code to deploy a K3s Ku
 └─────────────────────────────────────────────────────┘
 ```
 
+## ⚠️ Common Issue: "Out of host capacity"
+
+Oracle Cloud Free Tier ARM instances are in high demand. If you see "Out of host capacity" errors:
+
+1. **Run the capacity checker:** `./scripts/check-oci-capacity.sh`
+2. **Try different availability domains** in your region
+3. **Try different times** (early morning/late night work best)
+4. **See full troubleshooting guide:** [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+
 ## 📋 Prerequisites
 
 1. **Oracle Cloud Account** (free tier)
