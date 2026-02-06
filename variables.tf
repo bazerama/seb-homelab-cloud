@@ -49,3 +49,9 @@ variable "arm_image_ocid" {
   type        = string
   # You'll need to find this for your region - see setup guide
 }
+
+variable "billing_alert_email" {
+  description = "Email address(es) to receive billing alerts (comma-separated for multiple)"
+  type        = string
+  # Example: "your.email@example.com" or "email1@example.com,email2@example.com"
+}

@@ -14,6 +14,7 @@ This repository contains OpenTofu (Terraform-compatible) code to deploy a K3s Ku
 - **Public IPs** for all nodes
 - **Automatic K3s installation** via cloud-init
 - **$0/month** - completely free, forever!
+- **Billing alerts** at $1 and $5 to protect against accidental charges
 
 ## 🏗️ Architecture
 
@@ -52,6 +53,21 @@ Oracle Cloud Free Tier ARM instances are in high demand. If you see "Out of host
 2. **Try different availability domains** in your region
 3. **Try different times** (early morning/late night work best)
 4. **See full troubleshooting guide:** [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+
+## 💰 Billing Protection
+
+This setup includes **automated billing alerts** to protect you from unexpected charges:
+
+- **$1 Alert**: Early warning if any charges occur (free tier should be $0)
+- **$5 Alert**: Urgent notification to review your resources immediately
+- **90% Forecast Alert**: Warns if projected to exceed $10/month budget
+
+**Setup**: Add your email to `terraform.tfvars`:
+```hcl
+billing_alert_email = "your.email@example.com"
+```
+
+The infrastructure is configured to stay 100% within Oracle's Always Free tier limits, so you should **never receive these alerts** under normal operation. If you do, it means something needs attention!
 
 ## 📋 Prerequisites
 
@@ -126,9 +142,11 @@ cd /Users/seb/repos/seb-homelab-cloud
 # Copy example config
 cp terraform.tfvars.example terraform.tfvars
 
-# Edit with your values
+# Edit with your values (including your email for billing alerts!)
 vim terraform.tfvars
 ```
+
+**Important**: Set `billing_alert_email` to receive alerts if spending exceeds $1 or $5.
 
 Or use environment variables:
 
@@ -142,6 +160,7 @@ export TF_VAR_compartment_ocid="ocid1.tenancy.oc1..xxx"
 export TF_VAR_availability_domain="ynwd:US-ASHBURN-AD-1"
 export TF_VAR_ssh_public_key="$(cat ~/.ssh/id_rsa.pub)"
 export TF_VAR_arm_image_ocid="ocid1.image.oc1.iad.xxx"
+export TF_VAR_billing_alert_email="your.email@example.com"
 ```
 
 ### Step 4: Deploy!

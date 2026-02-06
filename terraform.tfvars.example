@@ -17,3 +17,6 @@ ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
 # ARM image OCID - Ubuntu 22.04 ARM for Sydney
 arm_image_ocid = "ocid1.image.oc1.ap-sydney-1.aaaaaaaavd6pyh743377ohug5wxn77c2tomo3fh3hslna7dx5ktpk35llt7q"
+
+# Billing alert email - receives notifications at $1 and $5 thresholds
+billing_alert_email = "your.email@example.com"
