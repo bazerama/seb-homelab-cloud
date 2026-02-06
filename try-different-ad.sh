@@ -18,17 +18,14 @@ Option 1: Try at a different time
 Option 2: Switch to a region with better capacity
   Recommended regions (update terraform.tfvars):
 
-  1. US East (Usually best capacity):
-     region = "us-ashburn-1"
-     availability_domain = "zkJl:US-ASHBURN-AD-1"
+  1. Upgrade to PAYG (recommended - keeps free tier, adds priority)
+     See: SYDNEY_CAPACITY_SOLUTIONS.md
 
-  2. EU Frankfurt (Good capacity):
-     region = "eu-frankfurt-1"
-     availability_domain = "GvZH:EU-FRANKFURT-1-AD-1"
+  2. Try auto-retry overnight (best times 2-6 AM AEDT):
+     ./scripts/auto-retry-apply.sh
 
-  3. Mumbai (Often has capacity):
-     region = "ap-mumbai-1"
-     availability_domain = "IooH:AP-MUMBAI-1-AD-1"
+  3. Manually retry at off-peak times:
+     2-6 AM AEDT (best success rate)
 
   Note: You'll also need to update arm_image_ocid for the new region
 

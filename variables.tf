@@ -23,9 +23,9 @@ variable "private_key_path" {
 }
 
 variable "region" {
-  description = "OCI region (e.g., us-ashburn-1, eu-frankfurt-1)"
+  description = "OCI region (e.g., ap-sydney-1, us-ashburn-1, eu-frankfurt-1)"
   type        = string
-  default     = "us-ashburn-1"
+  default     = "ap-sydney-1"
 }
 
 variable "compartment_ocid" {
@@ -34,7 +34,7 @@ variable "compartment_ocid" {
 }
 
 variable "availability_domain" {
-  description = "Availability domain (e.g., 'ynwd:US-ASHBURN-AD-1')"
+  description = "Availability domain (e.g., 'JYNt:AP-SYDNEY-1-AD-1')"
   type        = string
 }
 

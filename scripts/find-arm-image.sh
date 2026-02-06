@@ -7,7 +7,7 @@ set -euo pipefail
 # This script helps find the correct Ubuntu ARM image OCID for your region
 # ============================================================================
 
-REGION="${1:-us-ashburn-1}"
+REGION="${1:-ap-sydney-1}"
 
 echo "🔍 Finding ARM Ubuntu Image for Region: ${REGION}"
 echo ""
