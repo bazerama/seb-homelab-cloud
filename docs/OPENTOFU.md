@@ -242,4 +242,3 @@ For enterprise with existing Terraform setup: **Your choice**
 ---
 
 **Bottom line**: OpenTofu is the open-source future of Terraform. Use it! 🚀
-

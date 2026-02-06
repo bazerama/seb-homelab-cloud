@@ -17,7 +17,7 @@ runcmd:
   - sleep 60  # Wait for control plane to be ready
   - curl -sfL https://get.k3s.io | K3S_URL="https://${control_plane_ip}:6443" K3S_TOKEN="${k3s_token}" sh -
 %{ endif ~}
-  
+
   # Enable and start K3s
 %{ if is_control_plane ~}
   - systemctl enable k3s
@@ -26,7 +26,7 @@ runcmd:
   - systemctl enable k3s-agent
   - systemctl start k3s-agent
 %{ endif ~}
-  
+
   # Configure firewall for K3s
   - firewall-cmd --permanent --add-port=6443/tcp
   - firewall-cmd --permanent --add-port=10250/tcp
@@ -39,4 +39,3 @@ runcmd:
   - firewall-cmd --reload
 
 final_message: "K3s ${node_role} ${node_name} is ready!"
-

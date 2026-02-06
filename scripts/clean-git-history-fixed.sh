@@ -43,7 +43,7 @@ if [ -n "$TFVARS_HISTORY" ]; then
     echo -e "${RED}⚠️  Found terraform.tfvars in git history:${NC}"
     echo "$TFVARS_HISTORY"
     echo ""
-    
+
     # Show the actual content from the first commit
     FIRST_COMMIT=$(echo "$TFVARS_HISTORY" | tail -1 | cut -d' ' -f1)
     echo -e "${YELLOW}Showing first 10 lines from commit $FIRST_COMMIT:${NC}"
@@ -94,11 +94,11 @@ if [ "$METHOD" = "2" ]; then
             exit 1
         fi
     fi
-    
+
     echo "🧹 Cleaning with BFG Repo-Cleaner..."
     bfg --delete-files terraform.tfvars
     echo ""
-    
+
 elif [ "$METHOD" = "1" ]; then
     echo "🧹 Cleaning with git filter-branch..."
     git filter-branch --force --index-filter \
@@ -172,4 +172,3 @@ echo ""
 echo "✅ Your credentials have been removed from git history"
 echo "✅ Make sure you've rotated your API key in OCI Console"
 echo ""
-

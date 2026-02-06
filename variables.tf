@@ -49,4 +49,3 @@ variable "arm_image_ocid" {
   type        = string
   # You'll need to find this for your region - see setup guide
 }
-

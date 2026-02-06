@@ -317,11 +317,11 @@ resource "oci_core_instance" "k3s_workers" {
 output "validation_summary" {
   description = "Always-Free tier resource usage summary"
   value = {
-    instances = "${local.total_instances}/4"
-    ocpus     = "${local.total_ocpus}/4"
-    memory_gb = "${local.total_memory_gb}/24"
+    instances  = "${local.total_instances}/4"
+    ocpus      = "${local.total_ocpus}/4"
+    memory_gb  = "${local.total_memory_gb}/24"
     storage_gb = "${local.total_storage}/200"
-    status    = "✅ Within Always-Free tier limits"
+    status     = "✅ Within Always-Free tier limits"
   }
 }
 
@@ -355,7 +355,7 @@ output "all_nodes" {
   description = "All node details"
   value = merge(
     {
-      "${oci_core_instance.k3s_control_plane.display_name}" = {
+      (oci_core_instance.k3s_control_plane.display_name) = {
         public_ip  = oci_core_instance.k3s_control_plane.public_ip
         private_ip = oci_core_instance.k3s_control_plane.private_ip
         role       = "control-plane"
@@ -382,7 +382,7 @@ output "ssh_commands" {
   description = "SSH commands to access nodes"
   value = merge(
     {
-      "${oci_core_instance.k3s_control_plane.display_name}" = "ssh opc@${oci_core_instance.k3s_control_plane.public_ip}"
+      (oci_core_instance.k3s_control_plane.display_name) = "ssh opc@${oci_core_instance.k3s_control_plane.public_ip}"
     },
     {
       for name, instance in oci_core_instance.k3s_workers :
@@ -395,4 +395,3 @@ output "kubeconfig_command" {
   description = "Command to fetch kubeconfig from control plane"
   value       = "ssh opc@${oci_core_instance.k3s_control_plane.public_ip} sudo cat /etc/rancher/k3s/k3s.yaml"
 }
-

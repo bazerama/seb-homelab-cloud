@@ -1,0 +1,25 @@
+# Gitleaks configuration
+# https://github.com/gitleaks/gitleaks
+
+title = "Gitleaks config for seb-homelab-cloud"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist for known safe values"
+paths = [
+  '''terraform\.tfvars\.example$''',
+  '''env\.example$''',
+  '''docs/.*\.md$''',
+  '''\.github/.*\.md$''',
+]
+
+regexes = [
+  '''ocid1\.tenancy\.oc1\.\.aaaaaaaxxxxx''',  # Example OCID
+  '''ocid1\.user\.oc1\.\.aaaaaaaxxxxx''',     # Example OCID
+  '''xx:xx:xx:xx:xx:xx:xx:xx''',              # Example fingerprint
+  '''example\.com''',
+  '''your-.*''',
+  '''<.*>''',  # Placeholders in documentation
+]

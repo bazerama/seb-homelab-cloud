@@ -351,4 +351,3 @@ kubectl apply -f applications/argocd/manifests/
 - [OCI Free Tier](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier.htm)
 - [OCI Networking](https://docs.oracle.com/en-us/iaas/Content/Network/Concepts/overview.htm)
 - [Ampere A1 Specs](https://www.oracle.com/cloud/compute/arm/)
-

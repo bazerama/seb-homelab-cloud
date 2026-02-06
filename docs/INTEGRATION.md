@@ -390,4 +390,3 @@ cd seb-homelab-k8s-iac-oracle
 - **Test failover**: Practice switching between clusters
 
 Enjoy running your homelab in the cloud! ☁️
-
