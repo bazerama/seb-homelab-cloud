@@ -7,15 +7,13 @@ user_ocid          = "ocid1.user.oc1..aaaaaaaa..."
 fingerprint        = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
 private_key_path   = "~/.oci/oci_api_key.pem"
 compartment_ocid   = "ocid1.compartment.oc1..aaaaaaaa..." # Or use tenancy_ocid
-region             = "us-ashburn-1" # or your preferred region
+region             = "ap-sydney-1" # Your account's home region
 
 # Get this from: OCI Console -> Compute -> Instances -> Create Instance -> Select AD
-# US East (Ashburn) typically has: zkJl:US-ASHBURN-AD-1, zkJl:US-ASHBURN-AD-2, zkJl:US-ASHBURN-AD-3
-availability_domain = "zkJl:US-ASHBURN-AD-1"
+availability_domain = "JYNt:AP-SYDNEY-1-AD-1"
 
 # SSH key for accessing instances
 ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
-# ARM image OCID - Run: ./scripts/find-arm-image.sh us-ashburn-1
-# Or visit: https://docs.oracle.com/iaas/images/ and search for Ubuntu 22.04 ARM
-arm_image_ocid = "ocid1.image.oc1.iad.aaaaaaaa..."  # Update with actual OCID!
+# ARM image OCID - Ubuntu 22.04 ARM for Sydney
+arm_image_ocid = "ocid1.image.oc1.ap-sydney-1.aaaaaaaavd6pyh743377ohug5wxn77c2tomo3fh3hslna7dx5ktpk35llt7q"
