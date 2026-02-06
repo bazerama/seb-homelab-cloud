@@ -10,10 +10,12 @@ compartment_ocid   = "ocid1.compartment.oc1..aaaaaaaa..." # Or use tenancy_ocid
 region             = "us-ashburn-1" # or your preferred region
 
 # Get this from: OCI Console -> Compute -> Instances -> Create Instance -> Select AD
-availability_domain = "ynwd:US-ASHBURN-AD-1"
+# US East (Ashburn) typically has: zkJl:US-ASHBURN-AD-1, zkJl:US-ASHBURN-AD-2, zkJl:US-ASHBURN-AD-3
+availability_domain = "zkJl:US-ASHBURN-AD-1"
 
 # SSH key for accessing instances
 ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
-# ARM image OCID - see docs/SETUP.md for how to find this
-arm_image_ocid = "ocid1.image.oc1.iad.aaaaaaaa..."
+# ARM image OCID - Run: ./scripts/find-arm-image.sh us-ashburn-1
+# Or visit: https://docs.oracle.com/iaas/images/ and search for Ubuntu 22.04 ARM
+arm_image_ocid = "ocid1.image.oc1.iad.aaaaaaaa..."  # Update with actual OCID!
