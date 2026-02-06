@@ -69,7 +69,8 @@ echo ""
 # Function to extract value from terraform.tfvars
 get_tfvar() {
     local key=$1
-    grep "^${key}" terraform.tfvars | cut -d'=' -f2 | tr -d ' "' || echo ""
+    # Extract value, remove quotes, trim whitespace, and strip inline comments
+    grep "^${key}" terraform.tfvars | cut -d'=' -f2 | cut -d'#' -f1 | tr -d ' "' | sed 's/[[:space:]]*$//' || echo ""
 }
 
 # Function to check if a secret exists
