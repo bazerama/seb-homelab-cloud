@@ -28,7 +28,8 @@ fi
 
 # Get compartment OCID from terraform.tfvars or environment
 if [ -f terraform.tfvars ]; then
-    COMPARTMENT_OCID=$(grep "^compartment_ocid" terraform.tfvars | cut -d'=' -f2 | tr -d ' "')
+    # Extract value, strip quotes, and remove inline comments
+    COMPARTMENT_OCID=$(grep "^compartment_ocid" terraform.tfvars | cut -d'=' -f2 | cut -d'#' -f1 | tr -d ' "')
 elif [ -n "${TF_VAR_compartment_ocid:-}" ]; then
     COMPARTMENT_OCID="$TF_VAR_compartment_ocid"
 else
@@ -79,7 +80,8 @@ echo "💰 Checking Budgets..."
 
 # Get tenancy OCID (budgets are at tenancy level)
 if [ -f terraform.tfvars ]; then
-    TENANCY_OCID=$(grep "^tenancy_ocid" terraform.tfvars | cut -d'=' -f2 | tr -d ' "')
+    # Extract value, strip quotes, and remove inline comments
+    TENANCY_OCID=$(grep "^tenancy_ocid" terraform.tfvars | cut -d'=' -f2 | cut -d'#' -f1 | tr -d ' "')
 elif [ -n "${TF_VAR_tenancy_ocid:-}" ]; then
     TENANCY_OCID="$TF_VAR_tenancy_ocid"
 else
