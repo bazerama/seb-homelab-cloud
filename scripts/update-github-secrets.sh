@@ -1,54 +1,113 @@
 #!/usr/bin/env bash
 
 # Script to automatically update GitHub Secrets from terraform.tfvars
-# Usage: ./scripts/update-github-secrets.sh
+# Usage: ./scripts/update-github-secrets.sh [--list-only|--help]
 
 set -euo pipefail
 
+# Show help
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Automatically update GitHub repository secrets from terraform.tfvars"
+    echo ""
+    echo "Options:"
+    echo "  --list-only    Check which secrets exist without modifying them"
+    echo "  --help, -h     Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0                   # Update all secrets (prompts before overwriting)"
+    echo "  $0 --list-only       # Check status of secrets"
+    echo ""
+    exit 0
+fi
+
+# Check for --list-only flag
+LIST_ONLY=false
+if [ "${1:-}" = "--list-only" ]; then
+    LIST_ONLY=true
+fi
+
 echo "🔐 Update GitHub Secrets from terraform.tfvars"
 echo "==============================================="
+echo ""
+
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
 # Check if gh CLI is installed
 if ! command -v gh &> /dev/null; then
-    echo "❌ GitHub CLI (gh) is not installed"
+    echo -e "${RED}❌ GitHub CLI (gh) is not installed${NC}"
     echo "Install it: brew install gh"
     exit 1
 fi
 
 # Check if authenticated
 if ! gh auth status &> /dev/null; then
-    echo "❌ Not authenticated with GitHub CLI"
+    echo -e "${YELLOW}⚠️  Not authenticated with GitHub CLI${NC}"
     echo "Run: gh auth login"
     exit 1
 fi
 
-echo "✅ gh CLI is authenticated"
+echo -e "${GREEN}✅ gh CLI is authenticated${NC}"
 echo ""
 
 # Check if terraform.tfvars exists
 if [ ! -f "terraform.tfvars" ]; then
-    echo "❌ terraform.tfvars not found!"
+    echo -e "${RED}❌ terraform.tfvars not found!${NC}"
     echo "Please run this script from the repository root."
     exit 1
 fi
 
 # Function to extract value from tfvars and clean it
 get_tfvar() {
-  local var_name=$1
-  # Extract value, strip quotes, and remove inline comments
-  grep "^${var_name}" terraform.tfvars | cut -d'=' -f2 | cut -d'#' -f1 | tr -d ' "' | xargs
+    local var_name=$1
+    # Extract value, strip quotes, remove inline comments, and trim whitespace
+    grep "^${var_name}" terraform.tfvars | cut -d'=' -f2 | cut -d'#' -f1 | tr -d '"' | xargs
 }
 
 # Function to get file content
 get_file_content() {
-  local path=$1
-  local expanded_path="${path/#\~/$HOME}"
-  if [ -f "$expanded_path" ]; then
-    cat "$expanded_path"
-  else
-    echo "ERROR: File not found at $expanded_path"
-    exit 1
-  fi
+    local path=$1
+    local expanded_path="${path/#\~/$HOME}"
+    if [ -f "$expanded_path" ]; then
+        cat "$expanded_path"
+    else
+        echo -e "${RED}ERROR: File not found at $expanded_path${NC}"
+        exit 1
+    fi
+}
+
+# Function to check if a secret exists
+secret_exists() {
+    local name=$1
+    gh secret list | grep -q "^${name}"
+}
+
+# Function to set a secret
+set_secret() {
+    local name=$1
+    local value=$2
+
+    if [ -z "$value" ]; then
+        echo -e "${YELLOW}⚠️  Skipping ${name} (empty value)${NC}"
+        return
+    fi
+
+    if secret_exists "$name"; then
+        echo -n "Updating ${name}... "
+    else
+        echo -n "Setting ${name}... "
+    fi
+
+    if echo "$value" | gh secret set "$name"; then
+        echo -e "${GREEN}✅${NC}"
+    else
+        echo -e "${RED}❌ Failed${NC}"
+    fi
 }
 
 echo "📋 Reading values from terraform.tfvars..."
@@ -71,66 +130,132 @@ PRIVATE_KEY=$(get_file_content "$PRIVATE_KEY_PATH")
 SSH_PUBLIC_KEY=$(get_file_content "$SSH_PUBLIC_KEY_PATH")
 
 # Verify required values
-if [ -z "$TENANCY_OCID" ] || [ -z "$REGION" ] || [ -z "$BILLING_EMAIL" ]; then
-    echo "❌ Missing required values in terraform.tfvars"
+if [ -z "$TENANCY_OCID" ] || [ -z "$REGION" ]; then
+    echo -e "${RED}❌ Missing required values in terraform.tfvars${NC}"
     echo "Please ensure all variables are set correctly"
     exit 1
+fi
+
+echo "🔍 Checking existing secrets..."
+echo ""
+
+# List of secrets we're going to set
+SECRETS_TO_SET=(
+    "OCI_TENANCY_OCID"
+    "OCI_USER_OCID"
+    "OCI_FINGERPRINT"
+    "OCI_COMPARTMENT_OCID"
+    "OCI_REGION"
+    "OCI_AVAILABILITY_DOMAIN"
+    "OCI_ARM_IMAGE_OCID"
+    "OCI_BILLING_ALERT_EMAIL"
+    "OCI_PRIVATE_KEY"
+    "SSH_PUBLIC_KEY"
+)
+
+# Check which secrets already exist
+EXISTING_SECRETS=()
+MISSING_SECRETS=()
+for secret in "${SECRETS_TO_SET[@]}"; do
+    if secret_exists "$secret"; then
+        EXISTING_SECRETS+=("$secret")
+    else
+        MISSING_SECRETS+=("$secret")
+    fi
+done
+
+# If --list-only, just show status and exit
+if [ "$LIST_ONLY" = true ]; then
+    echo "📋 Secret Status:"
+    echo ""
+    if [ ${#EXISTING_SECRETS[@]} -gt 0 ]; then
+        echo -e "${GREEN}✅ Already Set (${#EXISTING_SECRETS[@]}):${NC}"
+        for secret in "${EXISTING_SECRETS[@]}"; do
+            echo "   • $secret"
+        done
+        echo ""
+    fi
+    if [ ${#MISSING_SECRETS[@]} -gt 0 ]; then
+        echo -e "${YELLOW}❌ Not Set (${#MISSING_SECRETS[@]}):${NC}"
+        for secret in "${MISSING_SECRETS[@]}"; do
+            echo "   • $secret"
+        done
+        echo ""
+    fi
+    if [ ${#MISSING_SECRETS[@]} -eq 0 ]; then
+        echo -e "${GREEN}All secrets are already configured! ✅${NC}"
+    else
+        echo "Run without --list-only to set missing secrets"
+    fi
+    exit 0
 fi
 
 echo "📊 Values to be set:"
 echo "  • Region: $REGION"
 echo "  • Availability Domain: $AVAILABILITY_DOMAIN"
-echo "  • Billing Email: $BILLING_EMAIL"
-echo "  • ARM Image OCID: ${ARM_IMAGE_OCID:0:30}..."
+if [ -n "$BILLING_EMAIL" ]; then
+    echo "  • Billing Email: $BILLING_EMAIL"
+fi
+echo "  • ARM Image OCID: ${ARM_IMAGE_OCID:0:40}..."
 echo ""
 
-read -p "Update GitHub secrets with these values? (yes/no): " -r REPLY
-echo ""
-if [[ ! $REPLY =~ ^[Yy]es$ ]]; then
-    echo "❌ Cancelled"
-    exit 0
+# Warn if secrets exist
+if [ ${#EXISTING_SECRETS[@]} -gt 0 ]; then
+    echo -e "${YELLOW}⚠️  Warning: The following secrets already exist and will be OVERWRITTEN:${NC}"
+    for secret in "${EXISTING_SECRETS[@]}"; do
+        echo "   • $secret"
+    done
+    echo ""
+    if [ ${#MISSING_SECRETS[@]} -gt 0 ]; then
+        echo -e "${GREEN}The following secrets will be CREATED:${NC}"
+        for secret in "${MISSING_SECRETS[@]}"; do
+            echo "   • $secret"
+        done
+        echo ""
+    fi
+    read -p "Continue and overwrite existing secrets? (yes/no): " -r CONFIRM
+    if [[ ! $CONFIRM =~ ^[Yy]es$ ]]; then
+        echo -e "${YELLOW}❌ Aborted by user${NC}"
+        exit 0
+    fi
+    echo ""
+else
+    echo -e "${GREEN}✅ No existing secrets found - will create new ones${NC}"
+    echo ""
 fi
 
 echo "🚀 Updating GitHub Secrets..."
 echo ""
 
-# Set secrets one by one
-gh secret set OCI_TENANCY_OCID --body "$TENANCY_OCID"
-echo "✅ OCI_TENANCY_OCID"
-
-gh secret set OCI_USER_OCID --body "$USER_OCID"
-echo "✅ OCI_USER_OCID"
-
-gh secret set OCI_FINGERPRINT --body "$FINGERPRINT"
-echo "✅ OCI_FINGERPRINT"
-
-gh secret set OCI_COMPARTMENT_OCID --body "$COMPARTMENT_OCID"
-echo "✅ OCI_COMPARTMENT_OCID"
-
-gh secret set OCI_REGION --body "$REGION"
-echo "✅ OCI_REGION"
-
-gh secret set OCI_AVAILABILITY_DOMAIN --body "$AVAILABILITY_DOMAIN"
-echo "✅ OCI_AVAILABILITY_DOMAIN"
-
-gh secret set OCI_ARM_IMAGE_OCID --body "$ARM_IMAGE_OCID"
-echo "✅ OCI_ARM_IMAGE_OCID"
-
-gh secret set OCI_BILLING_ALERT_EMAIL --body "$BILLING_EMAIL"
-echo "✅ OCI_BILLING_ALERT_EMAIL (NEW!)"
-
-gh secret set OCI_PRIVATE_KEY --body "$PRIVATE_KEY"
-echo "✅ OCI_PRIVATE_KEY"
-
-gh secret set SSH_PUBLIC_KEY --body "$SSH_PUBLIC_KEY"
-echo "✅ SSH_PUBLIC_KEY"
+# Set all secrets
+set_secret "OCI_TENANCY_OCID" "$TENANCY_OCID"
+set_secret "OCI_USER_OCID" "$USER_OCID"
+set_secret "OCI_FINGERPRINT" "$FINGERPRINT"
+set_secret "OCI_COMPARTMENT_OCID" "$COMPARTMENT_OCID"
+set_secret "OCI_REGION" "$REGION"
+set_secret "OCI_AVAILABILITY_DOMAIN" "$AVAILABILITY_DOMAIN"
+set_secret "OCI_ARM_IMAGE_OCID" "$ARM_IMAGE_OCID"
+set_secret "OCI_BILLING_ALERT_EMAIL" "$BILLING_EMAIL"
+set_secret "OCI_PRIVATE_KEY" "$PRIVATE_KEY"
+set_secret "SSH_PUBLIC_KEY" "$SSH_PUBLIC_KEY"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ GitHub Secrets Updated Successfully!"
+echo -e "${GREEN}✅ GitHub Secrets Updated Successfully!${NC}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "🔍 Verify at:"
-echo "https://github.com/bazerama/seb-homelab-cloud/settings/secrets/actions"
+echo "📊 Summary:"
+if [ ${#EXISTING_SECRETS[@]} -gt 0 ]; then
+    echo "   Updated: ${#EXISTING_SECRETS[@]} secret(s)"
+    if [ ${#MISSING_SECRETS[@]} -gt 0 ]; then
+        echo "   Created: ${#MISSING_SECRETS[@]} secret(s)"
+    fi
+else
+    echo "   Created: ${#SECRETS_TO_SET[@]} secret(s)"
+fi
 echo ""
-echo "💡 Next: Your GitHub Actions will now use Sydney region!"
+echo "🔍 Verify secrets at:"
+echo "https://github.com/$(gh repo view --json nameWithOwner -q .nameWithOwner)/settings/secrets/actions"
+echo ""
+echo "💡 Tip: Run '$0 --list-only' to check secret status anytime"
+echo ""
