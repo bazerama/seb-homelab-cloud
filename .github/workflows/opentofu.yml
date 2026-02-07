@@ -40,6 +40,7 @@ env:
   TF_VAR_region: ${{ secrets.OCI_REGION }}
   TF_VAR_availability_domain: ${{ secrets.OCI_AVAILABILITY_DOMAIN }}
   TF_VAR_arm_image_ocid: ${{ secrets.OCI_ARM_IMAGE_OCID }}
+  TF_VAR_billing_alert_email: ${{ secrets.OCI_BILLING_ALERT_EMAIL }}
 
 jobs:
   validate:
@@ -133,11 +134,29 @@ jobs:
             const plan = fs.readFileSync('plan_output.txt', 'utf8');
             const truncatedPlan = plan.length > 65000 ? plan.substring(0, 65000) + '\n\n... (truncated)' : plan;
 
+            // Delete previous plan comments from this workflow
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            for (const comment of comments.data) {
+              if (comment.user.type === 'Bot' && comment.body.includes('#### OpenTofu Plan')) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id,
+                });
+              }
+            }
+
+            // Post new plan comment
             const output = `#### OpenTofu Plan 📝
 
             <details><summary>Show Plan</summary>
 
-            \`\`\`
+            \`\`\`hcl
             ${truncatedPlan}
             \`\`\`
 
