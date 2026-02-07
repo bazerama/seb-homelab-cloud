@@ -205,8 +205,67 @@ jobs:
       - name: Initialize OpenTofu
         run: tofu init
 
-      - name: Apply infrastructure changes
-        run: tofu apply -auto-approve
+      - name: Apply infrastructure changes (with retry)
+        id: apply
+        run: |
+          MAX_ATTEMPTS=5
+          ATTEMPT=1
+          DELAY=60
+
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "🚀 Attempt $ATTEMPT of $MAX_ATTEMPTS..."
+
+            if tofu apply -auto-approve; then
+              echo "✅ Apply succeeded!"
+              exit 0
+            fi
+
+            EXIT_CODE=$?
+
+            if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+              echo "⚠️  Apply failed (exit code: $EXIT_CODE)"
+              echo "💤 Waiting ${DELAY}s before retry (OCI capacity constraints)..."
+              echo "📊 This is common in Sydney region - ARM capacity is limited"
+              sleep $DELAY
+
+              # Exponential backoff: 60s, 120s, 240s, 480s
+              DELAY=$((DELAY * 2))
+              ATTEMPT=$((ATTEMPT + 1))
+            else
+              echo "❌ All $MAX_ATTEMPTS attempts failed"
+              exit $EXIT_CODE
+            fi
+          done
+
+      - name: Comment on capacity retry (if applicable)
+        if: steps.apply.outcome == 'success' && github.event_name == 'push'
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            // Find the most recent PR that was merged to trigger this workflow
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              sort: 'updated',
+              direction: 'desc',
+              per_page: 5
+            });
+
+            const mergedPR = prs.data.find(pr =>
+              pr.merged_at &&
+              pr.merge_commit_sha === context.sha
+            );
+
+            if (mergedPR) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: mergedPR.number,
+                body: `## ✅ Deployment Successful!\n\nThe infrastructure has been deployed after handling OCI capacity constraints.\n\n💡 **Note**: Due to limited ARM capacity in Sydney, deployments may require multiple attempts. This is normal and expected.`
+              });
+            }
 
       - name: Output cluster information
         run: |
