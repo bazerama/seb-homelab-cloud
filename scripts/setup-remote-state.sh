@@ -163,14 +163,14 @@ cat > backend.tf << EOF
 terraform {
   backend "s3" {
     # OCI Object Storage S3-compatible endpoint
-    endpoint                    = "${NAMESPACE}.compat.objectstorage.${REGION}.oraclecloud.com"
+    endpoint                    = "https://${NAMESPACE}.compat.objectstorage.${REGION}.oraclecloud.com"
     bucket                      = "${BUCKET_NAME}"
     key                         = "k3s-cluster/terraform.tfstate"
     region                      = "${REGION}"
     skip_credentials_validation = true
     skip_metadata_api_check     = true
     skip_region_validation      = true
-    force_path_style            = false
+    use_path_style              = true
 
     # Credentials are set via environment variables:
     # - AWS_ACCESS_KEY_ID (Customer Access Key from OCI)
