@@ -237,27 +237,27 @@ echo -e "${BLUE}🚀 Next Steps:${NC}"
 echo ""
 if [ -n "${ACCESS_KEY_ID:-}" ]; then
     echo "1. Load environment variables:"
-    echo "   ${GREEN}source .envrc${NC}"
+    echo -e "   ${GREEN}source .envrc${NC}"
     echo ""
 fi
 
 echo "2. Migrate existing state to remote backend:"
-echo "   ${GREEN}tofu init -migrate-state${NC}"
+echo -e "   ${GREEN}tofu init -migrate-state${NC}"
 echo ""
 
 echo "3. Verify migration:"
-echo "   ${GREEN}tofu state list${NC}"
+echo -e "   ${GREEN}tofu state list${NC}"
 echo ""
 
 echo "4. Set GitHub secrets:"
-echo "   ${GREEN}gh secret set AWS_ACCESS_KEY_ID --body \"$ACCESS_KEY_ID\"${NC}"
-echo "   ${GREEN}gh secret set AWS_SECRET_ACCESS_KEY --body \"$SECRET_KEY\"${NC}"
-echo "   ${GREEN}gh secret set TF_BACKEND_NAMESPACE --body \"$NAMESPACE\"${NC}"
+echo -e "   ${GREEN}gh secret set AWS_ACCESS_KEY_ID --body \"$ACCESS_KEY_ID\"${NC}"
+echo -e "   ${GREEN}gh secret set AWS_SECRET_ACCESS_KEY --body \"$SECRET_KEY\"${NC}"
+echo -e "   ${GREEN}gh secret set TF_BACKEND_NAMESPACE --body \"$NAMESPACE\"${NC}"
 echo ""
 
 echo "5. Commit and push:"
-echo "   ${GREEN}git add backend.tf .gitignore${NC}"
-echo "   ${GREEN}git commit -m \"feat(state): configure OCI Object Storage remote state\"${NC}"
+echo -e "   ${GREEN}git add backend.tf .gitignore${NC}"
+echo -e "   ${GREEN}git commit -m \"feat(state): configure OCI Object Storage remote state\"${NC}"
 echo ""
 
 echo -e "${GREEN}🎉 Your state will now be safely stored in OCI Object Storage!${NC}"

@@ -129,6 +129,23 @@ SSH_PUBLIC_KEY_PATH=$(get_tfvar "ssh_public_key_path")
 PRIVATE_KEY=$(get_file_content "$PRIVATE_KEY_PATH")
 SSH_PUBLIC_KEY=$(get_file_content "$SSH_PUBLIC_KEY_PATH")
 
+# Get remote state credentials from .envrc if it exists
+AWS_ACCESS_KEY_ID=""
+AWS_SECRET_ACCESS_KEY=""
+TF_BACKEND_NAMESPACE=""
+
+if [ -f ".envrc" ]; then
+    echo "📦 Found .envrc - reading remote state credentials..."
+    AWS_ACCESS_KEY_ID=$(grep "^export AWS_ACCESS_KEY_ID=" .envrc | cut -d'"' -f2)
+    AWS_SECRET_ACCESS_KEY=$(grep "^export AWS_SECRET_ACCESS_KEY=" .envrc | cut -d'"' -f2)
+
+    # Get namespace from OCI if not in .envrc
+    if command -v oci &> /dev/null && [ -f ~/.oci/config ]; then
+        TF_BACKEND_NAMESPACE=$(oci os ns get --query 'data' --raw-output 2>/dev/null || echo "")
+    fi
+    echo ""
+fi
+
 # Verify required values
 if [ -z "$TENANCY_OCID" ] || [ -z "$REGION" ]; then
     echo -e "${RED}❌ Missing required values in terraform.tfvars${NC}"
@@ -152,6 +169,17 @@ SECRETS_TO_SET=(
     "OCI_PRIVATE_KEY"
     "SSH_PUBLIC_KEY"
 )
+
+# Add remote state secrets if available
+if [ -n "$AWS_ACCESS_KEY_ID" ]; then
+    SECRETS_TO_SET+=("AWS_ACCESS_KEY_ID")
+fi
+if [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
+    SECRETS_TO_SET+=("AWS_SECRET_ACCESS_KEY")
+fi
+if [ -n "$TF_BACKEND_NAMESPACE" ]; then
+    SECRETS_TO_SET+=("TF_BACKEND_NAMESPACE")
+fi
 
 # Check which secrets already exist
 EXISTING_SECRETS=()
@@ -197,6 +225,9 @@ if [ -n "$BILLING_EMAIL" ]; then
     echo "  • Billing Email: $BILLING_EMAIL"
 fi
 echo "  • ARM Image OCID: ${ARM_IMAGE_OCID:0:40}..."
+if [ -n "$AWS_ACCESS_KEY_ID" ]; then
+    echo "  • Remote State: Enabled (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, TF_BACKEND_NAMESPACE)"
+fi
 echo ""
 
 # Warn if secrets exist
@@ -238,6 +269,15 @@ set_secret "OCI_ARM_IMAGE_OCID" "$ARM_IMAGE_OCID"
 set_secret "OCI_BILLING_ALERT_EMAIL" "$BILLING_EMAIL"
 set_secret "OCI_PRIVATE_KEY" "$PRIVATE_KEY"
 set_secret "SSH_PUBLIC_KEY" "$SSH_PUBLIC_KEY"
+
+# Set remote state secrets if available
+if [ -n "$AWS_ACCESS_KEY_ID" ]; then
+    echo ""
+    echo "🔐 Setting remote state secrets..."
+    set_secret "AWS_ACCESS_KEY_ID" "$AWS_ACCESS_KEY_ID"
+    set_secret "AWS_SECRET_ACCESS_KEY" "$AWS_SECRET_ACCESS_KEY"
+    set_secret "TF_BACKEND_NAMESPACE" "$TF_BACKEND_NAMESPACE"
+fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
