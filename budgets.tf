@@ -11,7 +11,7 @@ resource "oci_budget_budget" "free_tier_protection" {
   amount         = 10 # Monthly budget cap
   reset_period   = "MONTHLY"
 
-  display_name = "Free Tier Protection Budget"
+  display_name = "Free-Tier-Protection-Budget"
   description  = "Protects against unexpected charges - alerts at $1 and $5"
 
   # Target the entire tenancy
@@ -28,7 +28,7 @@ resource "oci_budget_budget" "free_tier_protection" {
 # Alert Rule: $1 threshold (Early Warning)
 resource "oci_budget_alert_rule" "alert_1_dollar" {
   budget_id    = oci_budget_budget.free_tier_protection.id
-  display_name = "Alert: $1 Spent (Early Warning)"
+  display_name = "Alert-1-Dollar-Early-Warning"
   description  = "Early warning - you've spent $1 this month"
 
   type           = "ACTUAL"
@@ -71,7 +71,7 @@ resource "oci_budget_alert_rule" "alert_1_dollar" {
 # Alert Rule: $5 threshold (Urgent Warning)
 resource "oci_budget_alert_rule" "alert_5_dollars" {
   budget_id    = oci_budget_budget.free_tier_protection.id
-  display_name = "Alert: $5 Spent (URGENT)"
+  display_name = "Alert-5-Dollars-URGENT"
   description  = "Urgent warning - you've spent $5 this month"
 
   type           = "ACTUAL"
@@ -124,7 +124,7 @@ resource "oci_budget_alert_rule" "alert_5_dollars" {
 # Optional: Forecast alert at 90% of $10 monthly budget
 resource "oci_budget_alert_rule" "alert_forecast_90_percent" {
   budget_id    = oci_budget_budget.free_tier_protection.id
-  display_name = "Alert: Forecast 90% of Budget"
+  display_name = "Alert-Forecast-90-Percent"
   description  = "Forecasted spending will reach 90% of monthly budget"
 
   type           = "FORECAST"
