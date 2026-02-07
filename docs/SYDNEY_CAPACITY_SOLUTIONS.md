@@ -4,7 +4,20 @@
 
 Free Tier accounts are **region-locked** to where you signed up. Since you're in Sydney (ap-sydney-1), you need to work with Sydney's limited ARM capacity.
 
-## ✅ Best Solutions (In Order of Effectiveness)
+## 🤖 GitHub Actions Auto-Retry (Built-in!)
+
+**Good news**: Our GitHub Actions workflow now automatically retries failed deployments!
+
+- ✅ **5 automatic retry attempts** with exponential backoff (60s, 120s, 240s, 480s)
+- ✅ **Handles "Out of host capacity" errors** gracefully
+- ✅ **No manual intervention needed** - just push and let it retry
+- ✅ **PR comments** notify you when deployment succeeds
+
+This means **most deployments will succeed automatically** without you having to do anything! 🎉
+
+If GitHub Actions exhausts all retries, continue with the manual solutions below.
+
+## ✅ Manual Solutions (In Order of Effectiveness)
 
 ### Option 1: Upgrade to Pay-As-You-Go (PAYG) - **RECOMMENDED** ⭐
 
