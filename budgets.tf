@@ -64,6 +64,7 @@ resource "oci_budget_alert_rule" "alert_1_dollar" {
     {
       alert-level = "warning"
       threshold   = "1-dollar"
+      purpose     = "cost-protection"
     }
   )
 }
@@ -117,6 +118,7 @@ resource "oci_budget_alert_rule" "alert_5_dollars" {
     {
       alert-level = "urgent"
       threshold   = "5-dollars"
+      purpose     = "cost-protection"
     }
   )
 }
@@ -154,6 +156,7 @@ resource "oci_budget_alert_rule" "alert_forecast_90_percent" {
     {
       alert-level = "forecast"
       threshold   = "90-percent"
+      purpose     = "cost-protection"
     }
   )
 }
