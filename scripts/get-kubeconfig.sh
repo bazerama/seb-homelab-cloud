@@ -166,6 +166,22 @@ if [ "$MERGE_CONFIG" = true ]; then
     cp "$TEMP_CONFIG" "$TEMP_NEW_CONFIG"
 
     if [ -f "$DEFAULT_KUBECONFIG" ]; then
+        # Check if context already exists and prompt for confirmation
+        if kubectl config get-contexts "$CONTEXT_NAME" &>/dev/null; then
+            echo -e "${YELLOW}⚠️  Context '$CONTEXT_NAME' already exists in $DEFAULT_KUBECONFIG${NC}"
+            EXISTING_SERVER=$(kubectl config view -o jsonpath="{.clusters[?(@.name==\"$CONTEXT_NAME\")].cluster.server}" 2>/dev/null || echo "unknown")
+            echo -e "   Current server: ${BLUE}${EXISTING_SERVER}${NC}"
+            echo -e "   New server:     ${BLUE}https://${CONTROL_PLANE_IP}:6443${NC}"
+            echo ""
+            read -rp "Overwrite existing '$CONTEXT_NAME' context? [y/N] " CONFIRM
+            if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
+                echo -e "${RED}❌ Aborted. Existing kubeconfig unchanged.${NC}"
+                rm -f "$TEMP_NEW_CONFIG" "$TEMP_CONFIG" "$TEMP_CONFIG.bak" "$TEMP_CONFIG.bak2" "$TEMP_CONFIG.bak3" "$TEMP_CONFIG.bak4"
+                exit 0
+            fi
+            echo ""
+        fi
+
         # Backup existing config
         cp "$DEFAULT_KUBECONFIG" "$DEFAULT_KUBECONFIG.backup.$(date +%Y%m%d-%H%M%S)"
         echo -e "${GREEN}✓${NC} Backed up existing config"
