@@ -109,11 +109,10 @@ if echo "$EXISTING_KEYS" | grep -q "terraform-state-access"; then
             echo -e "${GREEN}✓${NC} New key created: $KEY_NAME"
             ;;
         3)
-            # Get ID of old key
+            # Get ID of old key using jq (more reliable than JMESPath)
             OLD_KEY_ID=$(oci iam customer-secret-key list \
                 --user-id "$USER_OCID" \
-                --query 'data[?\"display-name\"==`terraform-state-access`].id | [0]' \
-                --raw-output)
+                --output json | jq -r '.data[] | select(."display-name" == "terraform-state-access") | .id')
 
             if [ -n "$OLD_KEY_ID" ] && [ "$OLD_KEY_ID" != "null" ]; then
                 oci iam customer-secret-key delete \
