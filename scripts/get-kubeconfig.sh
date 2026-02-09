@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 # Configuration
 KUBECONFIG_PATH="${KUBECONFIG_PATH:-$HOME/.kube/oci-k3s-config}"
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/oracle_vm_ssh_key}"
-SSH_USER="${SSH_USER:-ubuntu}"
+SSH_USER="${SSH_USER:-opc}"
 
 echo -e "${BLUE}🔧 Fetching K3s Kubeconfig from OCI${NC}"
 echo "========================================"
