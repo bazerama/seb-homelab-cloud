@@ -59,12 +59,13 @@ resource "oci_budget_alert_rule" "alert_1_dollar" {
     Next alert: $5
   EOT
 
-  freeform_tags = {
-    tier        = "always-free"
-    managed-by  = "terraform"
-    purpose     = "cost-protection"
-    environment = "homelab"
-  }
+  freeform_tags = merge(
+    local.common_tags,
+    {
+      alert-level = "warning"
+      threshold   = "1-dollar"
+    }
+  )
 }
 
 # Alert Rule: $5 threshold (Urgent Warning)
@@ -111,12 +112,13 @@ resource "oci_budget_alert_rule" "alert_5_dollars" {
     This should be $0/month.
   EOT
 
-  freeform_tags = {
-    tier        = "always-free"
-    managed-by  = "terraform"
-    purpose     = "cost-protection"
-    environment = "homelab"
-  }
+  freeform_tags = merge(
+    local.common_tags,
+    {
+      alert-level = "urgent"
+      threshold   = "5-dollars"
+    }
+  )
 }
 
 # Optional: Forecast alert at 90% of $10 monthly budget
@@ -147,12 +149,13 @@ resource "oci_budget_alert_rule" "alert_forecast_90_percent" {
     Review billing: https://cloud.oracle.com/usage/reports
   EOT
 
-  freeform_tags = {
-    tier        = "always-free"
-    managed-by  = "terraform"
-    purpose     = "cost-protection"
-    environment = "homelab"
-  }
+  freeform_tags = merge(
+    local.common_tags,
+    {
+      alert-level = "forecast"
+      threshold   = "90-percent"
+    }
+  )
 }
 
 # Output budget information
