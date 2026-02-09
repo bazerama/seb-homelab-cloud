@@ -27,15 +27,16 @@ runcmd:
   - systemctl start k3s-agent
 %{ endif ~}
 
-  # Configure firewall for K3s
-  - firewall-cmd --permanent --add-port=6443/tcp
-  - firewall-cmd --permanent --add-port=10250/tcp
-  - firewall-cmd --permanent --add-port=8472/udp
-  - firewall-cmd --permanent --add-port=51820/udp
-  - firewall-cmd --permanent --add-port=51821/udp
+  # Configure firewall for K3s (Ubuntu uses ufw)
+  - ufw allow 22/tcp
+  - ufw allow 6443/tcp
+  - ufw allow 10250/tcp
+  - ufw allow 8472/udp
+  - ufw allow 51820/udp
+  - ufw allow 51821/udp
 %{ if is_control_plane ~}
-  - firewall-cmd --permanent --add-port=2379-2380/tcp
+  - ufw allow 2379:2380/tcp
 %{ endif ~}
-  - firewall-cmd --reload
+  - ufw --force enable
 
 final_message: "K3s ${node_role} ${node_name} is ready!"
