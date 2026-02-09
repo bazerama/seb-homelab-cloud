@@ -170,6 +170,11 @@ if [ "$MERGE_CONFIG" = true ]; then
         cp "$DEFAULT_KUBECONFIG" "$DEFAULT_KUBECONFIG.backup.$(date +%Y%m%d-%H%M%S)"
         echo -e "${GREEN}✓${NC} Backed up existing config"
 
+        # Remove existing entries for this context (so we get a clean overwrite)
+        kubectl config delete-context "$CONTEXT_NAME" &>/dev/null || true
+        kubectl config delete-cluster "$CONTEXT_NAME" &>/dev/null || true
+        kubectl config delete-user "$CONTEXT_NAME" &>/dev/null || true
+
         # Merge configs using kubectl
         KUBECONFIG="$DEFAULT_KUBECONFIG:$TEMP_NEW_CONFIG" kubectl config view --flatten > "$DEFAULT_KUBECONFIG.tmp"
         mv "$DEFAULT_KUBECONFIG.tmp" "$DEFAULT_KUBECONFIG"
