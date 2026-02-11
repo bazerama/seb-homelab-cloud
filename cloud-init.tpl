@@ -7,11 +7,11 @@ packages:
   - wget
   - git
   - vim
-  - htop
+  - jq
 
 runcmd:
-  # Detect public IP from OCI metadata service (for TLS SAN)
-  - PUBLIC_IP=$(curl -s http://169.254.169.254/opc/v1/vnics/ | python3 -c "import sys,json; print(json.load(sys.stdin)[0].get('publicIp',''))" 2>/dev/null || echo "")
+  # Restart firewalld after package_upgrade (DBus can break after systemd upgrade)
+  - systemctl restart firewalld || systemctl start firewalld
 
   # Configure firewall for K3s (Oracle Linux uses firewalld)
   - firewall-cmd --permanent --add-port=6443/tcp
@@ -23,6 +23,14 @@ runcmd:
   - firewall-cmd --permanent --add-port=2379-2380/tcp
 %{ endif ~}
   - firewall-cmd --reload
+
+  # Detect public IP (OCI metadata, then fallback to ifconfig.me)
+  - |
+    PUBLIC_IP=$(curl -s -H "Authorization: Bearer Oracle" http://169.254.169.254/opc/v2/vnics/ 2>/dev/null | jq -r '.[0].publicIp // empty' 2>/dev/null)
+    if [ -z "$PUBLIC_IP" ]; then
+      PUBLIC_IP=$(curl -s --max-time 5 ifconfig.me 2>/dev/null)
+    fi
+    echo "Detected public IP: $PUBLIC_IP"
 
   # Install K3s
 %{ if is_control_plane ~}
