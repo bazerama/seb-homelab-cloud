@@ -1,6 +1,9 @@
 #cloud-config
 package_update: true
-package_upgrade: true
+# NOTE: package_upgrade disabled - it upgrades systemd/dbus which breaks
+# firewalld's DBus connection, and can fail on flaky mirrors (kexec-tools).
+# The base Oracle Linux image is already patched; specific packages below.
+package_upgrade: false
 
 packages:
   - curl
@@ -10,10 +13,16 @@ packages:
   - jq
 
 runcmd:
-  # Restart firewalld after package_upgrade (DBus can break after systemd upgrade)
-  - systemctl restart firewalld || systemctl start firewalld
+  # Ensure firewalld is running and wait for it to be ready
+  - |
+    systemctl enable firewalld --now
+    for i in $(seq 1 15); do
+      firewall-cmd --state 2>/dev/null && break
+      echo "Waiting for firewalld to be ready... ($i/15)"
+      sleep 2
+    done
 
-  # Configure firewall for K3s (Oracle Linux uses firewalld)
+  # Configure firewall for K3s
   - firewall-cmd --permanent --add-port=6443/tcp
   - firewall-cmd --permanent --add-port=10250/tcp
   - firewall-cmd --permanent --add-port=8472/udp
