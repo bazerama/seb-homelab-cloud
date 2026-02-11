@@ -59,9 +59,14 @@ resource "oci_budget_alert_rule" "alert_1_dollar" {
     Next alert: $5
   EOT
 
-  # NOTE: OCI Budget Alert Rule API silently drops extra freeform_tags
-  # beyond common_tags. Only common_tags persist; others cause perpetual drift.
-  freeform_tags = local.common_tags
+  # NOTE: OCI Budget Alert Rule API silently drops some tags (e.g. "cluster").
+  # Use explicit tags matching only what OCI actually persists.
+  freeform_tags = {
+    tier        = "always-free"
+    environment = "homelab"
+    managed-by  = "terraform"
+    purpose     = "cost-protection"
+  }
 }
 
 # Alert Rule: $5 threshold (Urgent Warning)
@@ -108,8 +113,13 @@ resource "oci_budget_alert_rule" "alert_5_dollars" {
     This should be $0/month.
   EOT
 
-  # NOTE: OCI Budget Alert Rule API silently drops extra freeform_tags
-  freeform_tags = local.common_tags
+  # NOTE: OCI Budget Alert Rule API silently drops some tags (e.g. "cluster").
+  freeform_tags = {
+    tier        = "always-free"
+    environment = "homelab"
+    managed-by  = "terraform"
+    purpose     = "cost-protection"
+  }
 }
 
 # Optional: Forecast alert at 90% of $10 monthly budget
@@ -140,8 +150,13 @@ resource "oci_budget_alert_rule" "alert_forecast_90_percent" {
     Review billing: https://cloud.oracle.com/usage/reports
   EOT
 
-  # NOTE: OCI Budget Alert Rule API silently drops extra freeform_tags
-  freeform_tags = local.common_tags
+  # NOTE: OCI Budget Alert Rule API silently drops some tags (e.g. "cluster").
+  freeform_tags = {
+    tier        = "always-free"
+    environment = "homelab"
+    managed-by  = "terraform"
+    purpose     = "cost-protection"
+  }
 }
 
 # Output budget information
