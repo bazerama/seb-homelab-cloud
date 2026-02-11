@@ -15,21 +15,20 @@ locals {
       memory_gb  = 12
       storage_gb = 50
     },
-    # COMMENTED OUT - Add back one at a time after control plane succeeds
-    # {
-    #   name       = "k3s-worker-1"
-    #   role       = "worker"
-    #   ocpus      = 1
-    #   memory_gb  = 6
-    #   storage_gb = 50
-    # },
-    # {
-    #   name       = "k3s-worker-2"
-    #   role       = "worker"
-    #   ocpus      = 1
-    #   memory_gb  = 6
-    #   storage_gb = 50
-    # }
+    {
+      name       = "k3s-worker-1"
+      role       = "worker"
+      ocpus      = 1
+      memory_gb  = 6
+      storage_gb = 50
+    },
+    {
+      name       = "k3s-worker-2"
+      role       = "worker"
+      ocpus      = 1
+      memory_gb  = 6
+      storage_gb = 50
+    }
   ]
 
   # Calculate totals for validation
