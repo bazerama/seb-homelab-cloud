@@ -5,6 +5,10 @@ package_update: true
 # The base Oracle Linux image is already patched; specific packages below.
 package_upgrade: false
 
+# NOTE: Package installation can fail due to mirror rate limits (HTTP 429).
+# These packages are nice-to-have but not critical for K3s operation.
+# If installation fails, cloud-init will continue with runcmd.
+package_reboot_if_required: false
 packages:
   - curl
   - wget
@@ -13,6 +17,13 @@ packages:
   - jq
 
 runcmd:
+  # Retry package installation if it failed (handles Oracle mirror rate limits)
+  - |
+    echo "Waiting 30 seconds before retrying package installation..."
+    sleep 30
+    echo "Attempting to install packages (retry after cloud-init package phase)..."
+    dnf install -y curl wget git vim jq 2>/dev/null || echo "Some packages already installed or mirrors unavailable, continuing..."
+
   # Ensure firewalld is running and wait for it to be ready
   - |
     systemctl enable firewalld --now
