@@ -266,6 +266,7 @@ resource "oci_core_instance" "k3s_control_plane" {
 }
 
 # Worker Nodes (created after control plane)
+# Note: Workers connect to control plane via private IP for better security and reliability
 resource "oci_core_instance" "k3s_workers" {
   for_each = { for idx, node in slice(local.nodes, 1, length(local.nodes)) : node.name => node }
 
@@ -297,7 +298,7 @@ resource "oci_core_instance" "k3s_workers" {
       node_name        = each.value.name
       node_role        = each.value.role
       is_control_plane = false
-      control_plane_ip = oci_core_instance.k3s_control_plane.public_ip
+      control_plane_ip = oci_core_instance.k3s_control_plane.private_ip
       k3s_token        = local.k3s_token
     }))
   }
