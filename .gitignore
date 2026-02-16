@@ -50,4 +50,3 @@ secrets/
 # Logs
 *.log
 npm-debug.log*
-.envrc

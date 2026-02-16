@@ -21,7 +21,7 @@ This will:
 1. Create an Object Storage bucket
 2. Generate S3-compatible access keys
 3. Update `backend.tf` with your namespace
-4. Create `.envrc` with credentials
+4. Create `.env` with credentials
 
 ### Step 2: Enable Remote State
 
@@ -73,7 +73,7 @@ oci os bucket create \
 ### 2. Create S3-Compatible Access Keys
 
 **Via OCI Console:**
-1. Go to: Profile → User Settings → Customer Secret Keys
+1. Go to: Profile → User settings → Tokens and keys → Customer Secret Keys
 2. Click **Generate Secret Key**
 3. Name: `terraform-state-access`
 4. **Save the Access Key and Secret Key** (you won't see the secret again!)
@@ -103,18 +103,15 @@ Edit `backend.tf` and:
 
 ### 5. Set Environment Variables
 
-Create `.envrc` (add to `.gitignore`):
+Create `.env` (add to `.gitignore`):
 
 ```bash
 # S3-compatible credentials for OCI Object Storage
-export AWS_ACCESS_KEY_ID="<your-access-key-id>"
-export AWS_SECRET_ACCESS_KEY="<your-secret-key>"
+AWS_ACCESS_KEY_ID=<your-access-key-id>
+AWS_SECRET_ACCESS_KEY=<your-secret-key>
 ```
 
-Load them:
-```bash
-source .envrc
-```
+These are loaded automatically by `make plan` / `make apply`.
 
 ### 6. Migrate State
 
@@ -202,10 +199,10 @@ oci os bucket list --compartment-id "$TF_VAR_compartment_ocid"
 **Cause**: Wrong S3 credentials
 
 **Fix**:
-1. Go to OCI Console → Profile → Customer Secret Keys
+1. Go to OCI Console → Profile → User settings → Tokens and keys → Customer Secret Keys
 2. Delete old key
 3. Generate new key
-4. Update `.envrc` and GitHub secrets
+4. Update `.env` and GitHub secrets
 
 ### State Lock Conflicts
 
