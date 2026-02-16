@@ -129,17 +129,17 @@ SSH_PUBLIC_KEY_PATH=$(get_tfvar "ssh_public_key_path")
 PRIVATE_KEY=$(get_file_content "$PRIVATE_KEY_PATH")
 SSH_PUBLIC_KEY=$(get_file_content "$SSH_PUBLIC_KEY_PATH")
 
-# Get remote state credentials from .envrc if it exists
+# Get remote state credentials from .env if it exists
 AWS_ACCESS_KEY_ID=""
 AWS_SECRET_ACCESS_KEY=""
 TF_BACKEND_NAMESPACE=""
 
-if [ -f ".envrc" ]; then
-    echo "📦 Found .envrc - reading remote state credentials..."
-    AWS_ACCESS_KEY_ID=$(grep "^export AWS_ACCESS_KEY_ID=" .envrc | cut -d'"' -f2)
-    AWS_SECRET_ACCESS_KEY=$(grep "^export AWS_SECRET_ACCESS_KEY=" .envrc | cut -d'"' -f2)
+if [ -f ".env" ]; then
+    echo "📦 Found .env - reading remote state credentials..."
+    AWS_ACCESS_KEY_ID=$(grep '^AWS_ACCESS_KEY_ID=' .env | cut -d'=' -f2 | tr -d '"' | xargs)
+    AWS_SECRET_ACCESS_KEY=$(grep '^AWS_SECRET_ACCESS_KEY=' .env | cut -d'=' -f2 | tr -d '"' | xargs)
 
-    # Get namespace from OCI if not in .envrc
+    # Get namespace from OCI if not in .env
     if command -v oci &> /dev/null && [ -f ~/.oci/config ]; then
         TF_BACKEND_NAMESPACE=$(oci os ns get --query 'data' --raw-output 2>/dev/null || echo "")
     fi
